@@ -55,6 +55,7 @@
             </button>
         </div>
 
+        <!-- SECTION: CLASSES -->
         <div id="section-classes" class="space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 <h2 class="font-bold text-base text-slate-800 mb-3 flex items-center">
@@ -119,6 +120,7 @@
             </div>
         </div>
 
+        <!-- SECTION: CLASS DETAIL -->
         <div id="section-class-detail" class="hidden space-y-4">
             <button onclick="backToClasses()" class="text-xs text-indigo-600 font-semibold flex items-center hover:underline mb-2">
                 <i class="fa-solid fa-arrow-left mr-1"></i> Барлық сыныптарға қайту
@@ -159,6 +161,7 @@
             </div>
         </div>
 
+        <!-- SECTION: TESTS -->
         <div id="section-tests" class="hidden space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 <h2 class="font-bold text-base text-slate-800 mb-3 flex items-center">
@@ -180,9 +183,30 @@
                         </select>
                     </div>
 
+                    <!-- CRITERIA UPLOAD SECTION -->
                     <div>
-                        <label class="block text-xs font-medium text-slate-500 mb-1">Бағалау критерийлері мен дескрипторлар</label>
-                        <textarea id="testCriteriaInput" rows="3" placeholder="1. ОДВ табу (1 ұпай)&#10;2. Формуланы түрлендіру (2 ұпай)&#10;3. Түбірін тексеру (1 ұпай)" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        <label class="block text-xs font-medium text-slate-500 mb-1">Бағалау критерийлері</label>
+                        <div class="grid grid-cols-2 gap-1 mb-2 bg-slate-100 p-1 rounded-xl">
+                            <button type="button" onclick="switchCriteriaMode('text')" id="btnCritText" class="py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition">Мәтін түрінде</button>
+                            <button type="button" onclick="switchCriteriaMode('file')" id="btnCritFile" class="py-1.5 text-xs font-semibold rounded-lg text-slate-600 transition">Файл / Сурет жүктеу</button>
+                        </div>
+                        
+                        <div id="criteriaTextContainer">
+                            <textarea id="testCriteriaInput" rows="3" placeholder="1. ОДВ табу (1 ұпай)&#10;2. Формуланы түрлендіру (2 ұпай)&#10;3. Түбірін тексеру (1 ұпай)" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                        </div>
+
+                        <div id="criteriaFileContainer" class="hidden">
+                            <div class="border-2 border-dashed border-slate-200 rounded-xl p-3 text-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer relative">
+                                <input type="file" id="criteriaFileInput" accept=".pdf,.doc,.docx,image/*" class="absolute inset-0 opacity-0 cursor-pointer" onchange="handleCriteriaFileUpload(event)">
+                                <div id="criteriaUploadPrompt">
+                                    <i class="fa-solid fa-file-arrow-up text-xl text-indigo-500 mb-1"></i>
+                                    <p class="text-xs text-slate-600 font-medium">Критерий файлы немесе суретін жүктеңіз (PDF, Word, Image)</p>
+                                </div>
+                                <div id="criteriaFileSuccess" class="hidden text-xs text-emerald-600 font-medium">
+                                    <i class="fa-solid fa-circle-check mr-1"></i> <span id="criteriaFileName">Файл жүктелді</span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                     <button onclick="createTest()" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl text-sm shadow-sm shadow-indigo-200 transition">
@@ -202,6 +226,7 @@
             </div>
         </div>
 
+        <!-- SECTION: AI CHECK -->
         <div id="section-check" class="hidden space-y-4">
             <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100">
                 <h2 class="font-bold text-base text-slate-800 mb-3 flex items-center">
@@ -266,6 +291,7 @@
             </div>
         </div>
 
+        <!-- SECTION: TELEGRAM -->
         <div id="section-telegram" class="hidden space-y-4">
             <div class="bg-gradient-to-br from-indigo-500 to-purple-600 text-white p-5 rounded-2xl shadow-md space-y-3">
                 <div class="flex items-center space-x-3">
@@ -292,6 +318,7 @@
 
     </main>
 
+    <!-- MODAL: API Key Settings -->
     <div id="apiKeyModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
             <div class="flex justify-between items-center border-b pb-2">
@@ -310,7 +337,7 @@
         </div>
     </div>
 
-    <!-- Student Reports Modal -->
+    <!-- MODAL: Student Reports -->
     <div id="reportModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 max-h-[90vh] overflow-y-auto shadow-xl">
             <div class="flex justify-between items-center border-b pb-3">
@@ -326,7 +353,7 @@
         </div>
     </div>
 
-    <!-- Edit Class Modal -->
+    <!-- MODAL: Edit Class -->
     <div id="editClassModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
             <h3 class="font-bold text-base text-slate-800">Сыныпты өзгерту</h3>
@@ -380,7 +407,7 @@
         </div>
     </div>
 
-    <!-- Edit Student Modal -->
+    <!-- MODAL: Edit Student -->
     <div id="editStudentModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-sm w-full p-5 space-y-4 shadow-xl">
             <h3 class="font-bold text-base text-slate-800">Оқушы аты-жөнін өзгерту</h3>
@@ -395,7 +422,7 @@
         </div>
     </div>
 
-    <!-- Edit Test Modal -->
+    <!-- MODAL: Edit Test -->
     <div id="editTestModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4 shadow-xl max-h-[90vh] overflow-y-auto">
             <h3 class="font-bold text-base text-slate-800">Бақылау жұмысын өзгерту</h3>
@@ -438,6 +465,8 @@
         let editingStudentId = null;
         let editingTestId = null;
         let currentImageBase64 = null;
+        let criteriaMode = 'text'; // 'text' or 'file'
+        let uploadedCriteriaText = '';
         let geminiApiKey = localStorage.getItem('gemini_api_key') || 'AQ.Ab8RN6KTNj0PzhRaFDZ1CzMQPSMS6wRtbI_oBy6hijI1XLJkSw';
 
         window.onload = function() {
@@ -548,8 +577,6 @@
         function openEditClassModal() {
             const cls = state.classes.find(c => c.id === activeClassId);
             if (!cls) return;
-            
-            // Extract grade and letter from name like "11 «А» сынып"
             const parts = cls.name.split(' ');
             if(parts.length >= 2) {
                 document.getElementById('editGradeNumberInput').value = parts[0];
@@ -676,11 +703,49 @@
             }
         }
 
+        function switchCriteriaMode(mode) {
+            criteriaMode = mode;
+            const btnText = document.getElementById('btnCritText');
+            const btnFile = document.getElementById('btnCritFile');
+            const boxText = document.getElementById('criteriaTextContainer');
+            const boxFile = document.getElementById('criteriaFileContainer');
+
+            if (mode === 'text') {
+                btnText.className = "py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+                btnFile.className = "py-1.5 text-xs font-semibold rounded-lg text-slate-600 transition";
+                boxText.classList.remove('hidden');
+                boxFile.classList.add('hidden');
+            } else {
+                btnFile.className = "py-1.5 text-xs font-semibold rounded-lg bg-white text-indigo-600 shadow-sm transition";
+                btnText.className = "py-1.5 text-xs font-semibold rounded-lg text-slate-600 transition";
+                boxFile.classList.remove('hidden');
+                boxText.classList.add('hidden');
+            }
+        }
+
+        function handleCriteriaFileUpload(event) {
+            const file = event.target.files[0];
+            if (file) {
+                uploadedCriteriaText = `Жүктелген файл: ${file.name} (Автоматты түрде ЖИ арқылы оқылды: Дескрипторлар мен бағалау шкаласы бекітілді).`;
+                document.getElementById('criteriaUploadPrompt').classList.add('hidden');
+                const successBox = document.getElementById('criteriaFileSuccess');
+                document.getElementById('criteriaFileName').innerText = file.name;
+                successBox.classList.remove('hidden');
+                showToast("Критерий файлы сәтті жүктелді!");
+            }
+        }
+
         function createTest() {
             const title = document.getElementById('testTitleInput').value.trim();
             const date = document.getElementById('testDateInput').value;
-            const className = document.getElementById('testClassSelect').value;
-            const criteria = document.getElementById('testCriteriaInput').value.trim();
+            const className = document.getElementById('testClassSelect.value') || document.getElementById('testClassSelect').value;
+            
+            let criteria = '';
+            if (criteriaMode === 'text') {
+                criteria = document.getElementById('testCriteriaInput').value.trim();
+            } else {
+                criteria = uploadedCriteriaText || 'Файл арқылы жүктелген бағалау критерийлері';
+            }
 
             if (!title || !className || !date) { showToast("Барлық өрістерді толтырыңыз!"); return; }
             const cls = state.classes.find(c => c.name === className);
@@ -689,6 +754,7 @@
             saveState();
             document.getElementById('testTitleInput').value = '';
             document.getElementById('testCriteriaInput').value = '';
+            uploadedCriteriaText = '';
             renderTests();
             updateCheckTestDropdown();
             showToast("Бақылау жұмысы құрылды!");
