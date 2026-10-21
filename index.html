@@ -191,7 +191,7 @@
                         </div>
                         
                         <div id="criteriaTextContainer">
-                            <textarea id="testCriteriaInput" rows="3" placeholder="1. ОДВ табу (1 ұпай)&#10;2. Формуланы түрлендіру (2 ұпай)&#10;3. Түбірін тексеру (1 ұпай)" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                            <textarea id="testCriteriaInput" rows="3" placeholder="Мұнда критерийлерді немесе балаларға қойылатын талаптарды жазыңыз..." class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                         </div>
 
                         <div id="criteriaFileContainer" class="hidden">
@@ -240,13 +240,18 @@
                         </select>
                     </div>
 
-                    <!-- CRITERIA INFO & TABLE PREVIEW BOX -->
+                    <!-- CRITERIA VALIDATION NOTICE BOX -->
                     <div id="checkCriteriaInfoBox" class="hidden bg-indigo-50/70 border border-indigo-100 p-3 rounded-xl space-y-2">
                         <div class="flex justify-between items-center">
-                            <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-table-list mr-1"></i> Бақылау критерийлері мен шкаласы:</span>
-                            <span id="checkTotalPointsBadge" class="text-[10px] bg-indigo-600 text-white font-bold px-2 py-0.5 rounded-full">-- ұпай</span>
+                            <span class="text-xs font-bold text-indigo-900"><i class="fa-solid fa-table-list mr-1"></i> Жүктелген критерийлер:</span>
+                            <span id="checkCriteriaStatusBadge" class="text-[10px] bg-emerald-600 text-white font-bold px-2 py-0.5 rounded-full">Критерий бар</span>
                         </div>
-                        <div id="checkCriteriaTableContent" class="text-[11px] text-indigo-950 bg-white p-2.5 rounded-lg border border-indigo-100 space-y-1"></div>
+                        <div id="checkCriteriaContent" class="text-[11px] text-indigo-950 bg-white p-2.5 rounded-lg border border-indigo-100 max-h-24 overflow-y-auto"></div>
+                    </div>
+
+                    <div id="noCriteriaWarning" class="hidden bg-rose-50 border border-rose-200 p-3 rounded-xl text-xs text-rose-700 flex items-center space-x-2">
+                        <i class="fa-solid fa-triangle-exclamation text-base"></i>
+                        <span>Назар аударыңыз: Бұл бақылау жұмысына бағалау критерийі жүктелмеген! Жұмысты тексеру үшін алдымен «Бақылаулар» бөлімінен критерий қосыңыз.</span>
                     </div>
 
                     <div>
@@ -448,7 +453,7 @@
                     <input type="date" id="editTestDateInput" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500">
                 </div>
                 <div>
-                    <label class="block text-xs font-medium text-slate-500 mb-1">Критерийлер мен шкала</label>
+                    <label class="block text-xs font-medium text-slate-500 mb-1">Критерийлер</label>
                     <textarea id="editTestCriteriaInput" rows="3" class="w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
                 </div>
             </div>
@@ -487,13 +492,8 @@
                     date: '2026-10-21', 
                     subject: 'Математика', 
                     className: '11 «А» сынып', 
-                    criteria: '1. ОДВ табу (5 ұпай)\n2. Формуланы түрлендіру (10 ұпай)\n3. Түбірін тексеру (5 ұпай)',
-                    totalPoints: 20,
-                    criteriaTable: [
-                        { desc: '1. ОДВ табу', max: 5 },
-                        { desc: '2. Формуланы түрлендіру', max: 10 },
-                        { desc: '3. Түбірін тексеру', max: 5 }
-                    ]
+                    criteria: 'Оқушы берілген логарифмдік теңдеуді шешу кезінде ОДВ тауып, негізгі қасиеттерін дұрыс қолдануы тиіс.',
+                    criteriaImage: null
                 }
             ],
             reports: JSON.parse(localStorage.getItem('st_reports')) || []
@@ -779,54 +779,25 @@
             }
         }
 
-        function parseCriteriaToTable(text) {
-            let table = [];
-            let total = 0;
-            const lines = text.split('\n');
-            for(let line of lines) {
-                let match = line.match(/(\d+)\s*ұпай/i) || line.match(/\((\d+)\s*упай\)/i) || line.match(/[-–—:]\s*(\d+)/);
-                let maxPts = match ? parseInt(match[1]) : 5;
-                if(line.trim().length > 0) {
-                    table.push({ desc: line.trim(), max: maxPts });
-                    total += maxPts;
-                }
-            }
-            if(table.length === 0) {
-                table.push({ desc: text || 'Жалпы критерий', max: 20 });
-                total = 20;
-            }
-            return { table, total };
-        }
-
         async function createTest() {
             const title = document.getElementById('testTitleInput').value.trim();
             const date = document.getElementById('testDateInput').value;
             const className = document.getElementById('testClassSelect').value;
             
             let criteriaText = '';
-            let criteriaTable = [];
-            let totalPoints = 20;
 
             if (criteriaMode === 'text') {
                 criteriaText = document.getElementById('testCriteriaInput').value.trim();
-                let parsed = parseCriteriaToTable(criteriaText);
-                criteriaTable = parsed.table;
-                totalPoints = parsed.total;
             } else {
                 if(!uploadedCriteriaBase64) {
                     showToast("Алдымен критерий суретін жүктеңіз!");
                     return;
                 }
                 criteriaText = `Жүктелген критерий файлы: ${uploadedCriteriaName}`;
-                criteriaTable = [
-                    { desc: '1-тапсырма бойынша талаптар', max: 10 },
-                    { desc: '2-тапсырма бойынша шешу жолы', max: 10 }
-                ];
-                totalPoints = 20;
             }
 
             if (!title || !className || !date) { showToast("Барлық өрістерді толтырыңыз!"); return; }
-            if (!criteriaText) { showToast("Бағалау критерийлерін толтырыңыз!"); return; }
+            if (!criteriaText && !uploadedCriteriaBase64) { showToast("Бағалау критерийлерін енгізіңіз немесе жүктеңіз!"); return; }
 
             const cls = state.classes.find(c => c.name === className);
 
@@ -837,9 +808,7 @@
                 subject: cls ? cls.subject : 'Математика', 
                 className, 
                 criteria: criteriaText,
-                criteriaImage: criteriaMode === 'file' ? uploadedCriteriaBase64 : null,
-                totalPoints,
-                criteriaTable 
+                criteriaImage: criteriaMode === 'file' ? uploadedCriteriaBase64 : null
             });
 
             saveState();
@@ -865,7 +834,7 @@
                     <div class="flex justify-between items-center">
                         <div>
                             <p class="text-xs font-bold text-slate-800">${t.title}</p>
-                            <p class="text-[10px] text-indigo-600 font-medium">${t.className} • ${t.date} • ${t.subject} • <span class="font-bold text-emerald-600">${t.totalPoints || 20} ұпай</span></p>
+                            <p class="text-[10px] text-indigo-600 font-medium">${t.className} • ${t.date} • ${t.subject}</p>
                         </div>
                         <div class="flex space-x-1">
                             <button onclick="openEditTestModal('${t.id}')" class="text-slate-400 hover:text-indigo-600 text-xs p-1" title="Өзгерту">
@@ -877,10 +846,9 @@
                         </div>
                     </div>
                     <div class="text-[10px] bg-white p-2 rounded-lg border border-slate-100 text-slate-600">
-                        <strong>Критерий кестесі:</strong>
-                        <ul class="list-disc pl-3 mt-0.5 space-y-0.5">
-                            ${(t.criteriaTable || [{desc: t.criteria, max: 20}]).map(item => `<li>${item.desc} — <strong>${item.max} ұпай</strong></li>`).join('')}
-                        </ul>
+                        <strong>Критерий мәтіні / сипаты:</strong>
+                        <p class="mt-0.5">${t.criteria || 'Файл түріндегі критерий'}</p>
+                        ${t.criteriaImage ? `<div class="mt-1"><img src="${t.criteriaImage}" class="max-h-20 rounded shadow-sm"></div>` : ''}
                     </div>
                 </div>
             `).join('');
@@ -904,14 +872,10 @@
             const newDate = document.getElementById('editTestDateInput').value;
             const newCrit = document.getElementById('editTestCriteriaInput').value.trim();
             if (!newTitle) { showToast("Тақырыпты бос қалдырмаңыз!"); return; }
-            if (!newCrit) { showToast("Критерийлерді бос қалдырмаңыз!"); return; }
 
             t.title = newTitle;
             t.date = newDate;
             t.criteria = newCrit;
-            let parsed = parseCriteriaToTable(newCrit);
-            t.criteriaTable = parsed.table;
-            t.totalPoints = parsed.total;
 
             saveState();
             renderTests();
@@ -938,10 +902,12 @@
         function updateCheckCriteriaInfo() {
             const testId = document.getElementById('checkTestSelect').value;
             const infoBox = document.getElementById('checkCriteriaInfoBox');
+            const warningBox = document.getElementById('noCriteriaWarning');
             const studentSelect = document.getElementById('checkStudentSelect');
 
             if (!testId) {
                 infoBox.classList.add('hidden');
+                warningBox.classList.add('hidden');
                 studentSelect.innerHTML = `<option value="">-- Алдымен бақылауды таңдаңыз --</option>`;
                 return;
             }
@@ -954,15 +920,19 @@
                     cls.students.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
             }
 
-            document.getElementById('checkTotalPointsBadge').innerText = `Барлығы: ${test.totalPoints || 20} ұпай`;
-            document.getElementById('checkCriteriaTableContent').innerHTML = (test.criteriaTable || [{desc: test.criteria, max: 20}]).map(item => `
-                <div class="flex justify-between items-center border-b border-indigo-50 pb-1 last:border-0">
-                    <span>• ${item.desc}</span>
-                    <span class="font-bold text-indigo-700">${item.max} ұпай</span>
-                </div>
-            `).join('');
+            const hasCriteria = (test.criteria && test.criteria.trim() !== '') || test.criteriaImage;
 
-            infoBox.classList.remove('hidden');
+            if (!hasCriteria) {
+                infoBox.classList.add('hidden');
+                warningBox.classList.remove('hidden');
+            } else {
+                warningBox.classList.add('hidden');
+                document.getElementById('checkCriteriaContent').innerHTML = `
+                    <p>${test.criteria || 'Сурет/файл түріндегі жүктелген критерий шкаласы'}</p>
+                    ${test.criteriaImage ? `<img src="${test.criteriaImage}" class="max-h-24 mt-2 rounded shadow-sm">` : ''}
+                `;
+                infoBox.classList.remove('hidden');
+            }
         }
 
         function updateCheckStudentDropdown() {
@@ -991,81 +961,87 @@
 
             const test = state.tests.find(t => t.id === testId);
 
-            // CRITERIA ENFORCEMENT CHECK
-            if (!test.criteria || test.criteria.trim() === '') {
-                showToast("Қате: Бұл бақылау жұмысына бағалау критерийлері жүктелмеген! Алдымен критерий қосыңыз.");
+            // CRITERIA VALIDATION ENFORCEMENT
+            const hasCriteria = (test.criteria && test.criteria.trim() !== '') || test.criteriaImage;
+            if (!hasCriteria) {
+                showToast("Қате: Бұл бақылау жұмысына бағалау критерийлері жүктелмеген!");
+                document.getElementById('noCriteriaWarning').classList.remove('hidden');
                 return;
             }
 
             if (!currentImageBase64) { showToast("Оқушы жұмысының суретін жүктеңіз!"); return; }
 
             const checkBtn = document.getElementById('checkBtn');
-            checkBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Gemini ЖИ нақты талдауда...`;
+            checkBtn.innerHTML = `<i class="fa-solid fa-spinner fa-spin mr-2"></i> Нақты Gemini ЖИ талдауда...`;
             checkBtn.disabled = true;
 
             let analysisResult = null;
-            let aiEngineUsed = "Gemini AI (Real API)";
+            let aiEngineUsed = "Gemini 2.5 Flash (Real API)";
 
             try {
-                if (geminiApiKey) {
-                    const base64Data = currentImageBase64.split(',')[1];
-                    const mimeType = currentImageBase64.substring(currentImageBase64.indexOf(':') + 1, currentImageBase64.indexOf(';'));
+                if (!geminiApiKey) {
+                    throw new Error("Gemini API кілті енгізілмеген!");
+                }
 
-                    let criteriaDesc = test.criteriaTable ? test.criteriaTable.map(i => `${i.desc} (максимум ${i.max} ұпай)`).join(', ') : test.criteria;
-                    let maxTotal = test.totalPoints || 20;
+                const base64Data = currentImageBase64.split(',')[1];
+                const mimeType = currentImageBase64.substring(currentImageBase64.indexOf(':') + 1, currentImageBase64.indexOf(';'));
 
-                    const prompt = `Сен мектеп мұғалімінің ЖИ көмекшісісің. Мына бақылау жұмысы: "${test.title}". Пәні: ${test.subject}.
-                    БÁҒАЛАУ КРИТЕРИЙЛЕРІ МЕН ШКАЛАСЫ (барлығы ${maxTotal} ұпай): ${criteriaDesc}.
+                // Prepare parts for multimodal Gemini API call
+                let apiParts = [
+                    { text: `Сен мектеп мұғалімінің ЖИ көмекшісісің. Мына бақылау жұмысы: "${test.title}". Пәні: ${test.subject}. 
+                    МҰҒАЛІМ ЖҮКТЕГЕН БАҒАЛАУ КРИТЕРИЙЛЕРІ МЕН ШКАЛАСЫ: "${test.criteria}".
                     Жүктелген сурет - оқушы (${studentName}) жазған жұмыс.
-                    Осы оқушының жұмысын жүктелген критерийлерге сәйкес мұқият тексеріп, әр дескриптор бойынша ұпай бер. Барлық ұпайлардың қосындысы 0 мен ${maxTotal} арасында болсын.
+                    Осы оқушының жұмысын жүктелген критеийлер мен шкалаға сәйкес қатаң түрде тексеріп, критерийден автоматты түрде максималды балды өзің анықтап, соған сай бағалап шық.
                     Жауапты тек төмендегі JSON форматта қайтар (маркдаунсыз, таза JSON):
                     {
-                      "score": "X / ${maxTotal} ұпай",
-                      "criteriaAnalysis": "Критерийлер бойынша әр тармаққа берілген балл мен талдау",
-                      "errors": "Оқушы жіберген қателер",
+                      "score": "Жинаған баллы / Максималды балл (мысалы: 18 / 20 ұпай)",
+                      "criteriaAnalysis": "Критерийлер бойынша әр тармаққа берілген талдау және балл",
+                      "errors": "Оқушы жіберген нақты қателер",
                       "plan": ["1-сабақ: ...", "2-сабақ: ...", "3-сабақ: ...", "4-сабақ: ...", "5-сабақ: ..."]
-                    }`;
+                    }` }
+                ];
 
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            contents: [{
-                                parts: [
-                                    { text: prompt },
-                                    { inlineData: { mimeType: mimeType, data: base64Data } }
-                                ]
-                            }]
-                        })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        const part = data.candidates?.[0]?.content?.parts?.[0];
-                        if (part && part.text) {
-                            const cleanJson = part.text.replace(/```(?:json)?\s*([\s\S]*?)\s*```/i, '$1').trim();
-                            analysisResult = JSON.parse(cleanJson);
-                        }
-                    } else {
-                        let errData = await response.json();
-                        console.error("Gemini API Error:", errData);
-                    }
+                // If criteria has an image, attach it as well
+                if (test.criteriaImage) {
+                    const critBase64Data = test.criteriaImage.split(',')[1];
+                    const critMime = test.criteriaImage.substring(test.criteriaImage.indexOf(':') + 1, test.criteriaImage.indexOf(';'));
+                    apiParts.push({ inlineData: { mimeType: critMime, data: critBase64Data } });
                 }
-            } catch (err) {
-                console.warn("API қатесі, симуляцияға өтуде...", err);
-            }
 
-            if (!analysisResult) {
-                aiEngineUsed = "Интеллектуалды симуляция (API қатесі кезіндегі қорғаныс)";
-                let fallbackScore = Math.floor(test.totalPoints * 0.75) || 15;
+                // Attach student work image
+                apiParts.push({ inlineData: { mimeType: mimeType, data: base64Data } });
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiApiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: apiParts }] })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    const part = data.candidates?.[0]?.content?.parts?.[0];
+                    if (part && part.text) {
+                        const cleanJson = part.text.replace(/```(?:json)?\s*([\s\S]*?)\s*```/i, '$1').trim();
+                        analysisResult = JSON.parse(cleanJson);
+                    }
+                } else {
+                    let errData = await response.json();
+                    console.error("Gemini API Error:", errData);
+                    throw new Error(errData.error?.message || "API сұрау қатесі");
+                }
+
+            } catch (err) {
+                console.warn("API сәтсіз аяқталды немесе кілт жоқ, ескерту...", err);
+                showToast("API қатесі: " + err.message);
+                aiEngineUsed = "Симуляция (API қатесі)";
                 analysisResult = {
-                    score: `${fallbackScore} / ${test.totalPoints || 20} ұпай`,
-                    criteriaAnalysis: `Жүктелген критерийлерге сай тексерілді. Барлық шкала (${test.totalPoints || 20} ұпай) ескерілді.`,
-                    errors: "Есепті шығару барысындағы ұсақ есептеу қатесі.",
+                    score: "16 / 20 ұпай",
+                    criteriaAnalysis: "Жүктелген критерийлерге сай тексерілді. Формула дұрыс, есептеуде ұсақ ауытқу бар.",
+                    errors: "Бөлімді түрлендіру кезіндегі таңба қатесі.",
                     plan: [
-                        "1-сабақ: Жіберілген қателерді талдау және түзету.",
-                        "2-сабақ: Ұқсас есептерді шығару тренажеры.",
-                        "3-сабақ: Ережелер мен формулаларды қайталау.",
+                        "1-сабақ: Қателермен жұмыс және таңба ережелері.",
+                        "2-сабақ: Ұқсас есептерді шығару.",
+                        "3-сабақ: Түрлендіру әдістері.",
                         "4-сабақ: Практикалық тапсырмалар.",
                         "5-сабақ: Қорытынды бақылау."
                     ]
